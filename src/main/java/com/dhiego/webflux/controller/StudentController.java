@@ -94,11 +94,28 @@ public class StudentController {
 				response.put("Student", sFound);
 				sFound.agregarCurso(cFound);
 				return service.updateStudent(idStudent, sFound).map(s -> {
+
 					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(response);
 				});
 			}).defaultIfEmpty(ResponseEntity.notFound().build());
 
 		}).defaultIfEmpty(ResponseEntity.notFound().build());
+
+	}
+
+	@GetMapping("/edad/{age}")
+	public Mono<ResponseEntity<Map<String, Object>>> getStudentsByAge(@PathVariable int age) {
+
+		Map<String, Object> response = new HashMap<String, Object>();
+
+		Flux<Student> students = service.getStudentsByAge(age);
+
+		return students.collectList().flatMap(s -> {
+			response.put("message", "Request Success");
+			response.put("Age", age);
+			response.put("Students", s);
+			return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(response));
+		}).defaultIfEmpty(ResponseEntity.noContent().build());
 
 	}
 

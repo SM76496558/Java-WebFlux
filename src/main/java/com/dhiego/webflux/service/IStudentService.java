@@ -17,4 +17,6 @@ public interface IStudentService {
 
 	public Mono<Student> deleteStudentById(String id);
 
+	public Flux<Student> getStudentsByAge(int age);
+
 }

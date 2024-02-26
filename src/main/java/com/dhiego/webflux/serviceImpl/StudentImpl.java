@@ -48,4 +48,15 @@ public class StudentImpl implements IStudentService {
 		return repository.findById(id).flatMap(s -> repository.deleteById(id).then(Mono.just(s)));
 	}
 
+	@Override
+	public Flux<Student> getStudentsByAge(int age) {
+		return repository.findAll().filter(s -> {
+
+			if (s.getAge() == age) {
+				return true;
+			}
+			return false;
+		});
+	}
+
 }
