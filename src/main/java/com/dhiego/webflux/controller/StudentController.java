@@ -1,6 +1,7 @@
 package com.dhiego.webflux.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,13 +9,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dhiego.webflux.entity.Student;
@@ -57,7 +62,7 @@ public class StudentController {
 	}
 
 	@PostMapping("/add")
-	public Mono<ResponseEntity<Student>> addStudent(@RequestBody Student student) {
+	public Mono<ResponseEntity<Student>> addStudent(@Valid @RequestBody Student student) {
 
 		return service.addStudent(student)
 				.map(s -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(s))
@@ -93,7 +98,7 @@ public class StudentController {
 				response.put("Course", cFound);
 				response.put("Student", sFound);
 				sFound.agregarCurso(cFound);
-				return service.updateStudent(idStudent, sFound).map(s -> {
+				return service.asignar(idStudent, sFound).map(s -> {
 
 					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(response);
 				});
@@ -117,6 +122,19 @@ public class StudentController {
 			return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(response));
 		}).defaultIfEmpty(ResponseEntity.noContent().build());
 
+	}
+
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<Map<String, String>> handleValidationBadRequest(MethodArgumentNotValidException exception) {
+		Map<String, String> errors = new HashMap<>();
+
+		exception.getBindingResult().getAllErrors().forEach((error) -> {
+			String fieldName = ((FieldError) error).getField();
+			String errorMessage = error.getDefaultMessage();
+			errors.put(fieldName, errorMessage);
+		});
+		return ResponseEntity.badRequest().body(errors);
 	}
 
 }

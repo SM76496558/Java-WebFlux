@@ -15,6 +15,8 @@ public interface IStudentService {
 
 	public Mono<Student> updateStudent(String id, Student student);
 
+	public Mono<Student> asignar(String id, Student student);
+
 	public Mono<Student> deleteStudentById(String id);
 
 	public Flux<Student> getStudentsByAge(int age);

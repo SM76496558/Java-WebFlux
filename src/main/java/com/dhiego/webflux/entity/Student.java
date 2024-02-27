@@ -8,23 +8,34 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 @Document(collection = "students")
 public class Student implements Serializable {
 
+	@Valid
 	@Id
-	@NotNull
 	private String id = new ObjectId().toString();
 
+	@NotBlank(message = "Name cannot be blank")
+	@NotNull(message = "Name is required")
 	private String name;
+
+	@Min(9)
+	@Max(60)
 	private int age;
+
 	private List<Course> course = new ArrayList<>();
 
 	public Student() {
 	}
 
-	public Student(@NotNull String id, String name, int age, List<Course> course) {
+	public Student(String id, String name, int age, List<Course> course) {
 
 		this.id = id;
 		this.name = name;

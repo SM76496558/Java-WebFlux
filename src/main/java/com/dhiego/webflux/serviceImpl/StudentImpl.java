@@ -37,8 +37,6 @@ public class StudentImpl implements IStudentService {
 
 			s.setName(student.getName());
 			s.setAge(student.getAge());
-			s.setCourse(student.getCourse());
-
 			return repository.save(s);
 		});
 	}
@@ -56,6 +54,14 @@ public class StudentImpl implements IStudentService {
 				return true;
 			}
 			return false;
+		});
+	}
+
+	@Override
+	public Mono<Student> asignar(String id, Student student) {
+		return repository.findById(id).flatMap(s -> {
+			s.setCourse(student.getCourse());
+			return repository.save(s);
 		});
 	}
 

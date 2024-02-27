@@ -6,16 +6,27 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 @Document(collection = "courses")
 public class Course implements Serializable {
 
+	@Valid
 	@Id
 	private String id = new ObjectId().toString();
 
+	@NotBlank(message = "Name cannot be blank")
+	@NotNull(message = "Name is required")
 	private String name;
 
+	@NotBlank(message = "Professor name cannot be blank")
+	@NotNull(message = "Professor name is required")
 	private String professorName;
 
+	@NotBlank(message = "Description cannot be blank")
+	@NotNull(message = "Description is required")
 	private String description;
 
 	public Course() {

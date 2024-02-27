@@ -11,13 +11,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dhiego.webflux.entity.Course;
@@ -25,6 +29,7 @@ import com.dhiego.webflux.entity.Student;
 import com.dhiego.webflux.service.ICourseService;
 import com.dhiego.webflux.service.IStudentService;
 
+import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -44,6 +49,14 @@ public class CourseController {
 				.defaultIfEmpty(ResponseEntity.noContent().build());
 	}
 
+	@GetMapping("/withStudents")
+	public Mono<ResponseEntity<Flux<Map<String, Object>>>> getAllCoursesWithStudents() {
+
+		return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+				.body(service.getAllCoursesWithStudents()));
+
+	}
+
 	@GetMapping("/{id}")
 	public Mono<ResponseEntity<Map<String, Object>>> getOneById(@PathVariable String id) {
 		Map<String, Object> response = new HashMap<String, Object>();
@@ -51,6 +64,7 @@ public class CourseController {
 		Flux<Student> filterStudents = serviceStudent.getAllStudents().filter(student -> {
 
 			List<Course> arrayCourse = student.getCourse();
+
 			for (int i = 0; i < arrayCourse.size(); i++) {
 
 				String studentIdCourse = arrayCourse.get(i).getId();
@@ -64,7 +78,8 @@ public class CourseController {
 
 		return filterStudents.collectList().flatMap(students -> {
 
-			response.put("message", "Si funciono xd");
+			response.put("message", "Request success");
+
 			response.put("Students in Course", students);
 			return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(response));
 
@@ -73,7 +88,7 @@ public class CourseController {
 	}
 
 	@PostMapping("/add")
-	public Mono<ResponseEntity<Course>> addCourse(@RequestBody Course course) {
+	public Mono<ResponseEntity<Course>> addCourse(@RequestBody @Valid Course course) {
 		return service.addCourse(course).map(c -> {
 			return ResponseEntity.created(null).contentType(MediaType.APPLICATION_JSON_UTF8).body(c);
 		}).defaultIfEmpty(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
@@ -101,6 +116,19 @@ public class CourseController {
 
 		}).defaultIfEmpty(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
 
+	}
+
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<Map<String, String>> handleValidationBadRequest(MethodArgumentNotValidException exception) {
+		Map<String, String> errors = new HashMap<>();
+
+		exception.getBindingResult().getAllErrors().forEach((error) -> {
+			String fieldName = ((FieldError) error).getField();
+			String errorMessage = error.getDefaultMessage();
+			errors.put(fieldName, errorMessage);
+		});
+		return ResponseEntity.badRequest().body(errors);
 	}
 
 }
