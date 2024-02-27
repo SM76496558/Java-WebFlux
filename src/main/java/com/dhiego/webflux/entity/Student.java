@@ -22,6 +22,7 @@ public class Student implements Serializable {
 	@Id
 	private String id = new ObjectId().toString();
 
+	
 	@NotBlank(message = "Name cannot be blank")
 	@NotNull(message = "Name is required")
 	private String name;

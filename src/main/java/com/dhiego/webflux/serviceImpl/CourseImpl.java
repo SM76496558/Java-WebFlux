@@ -44,9 +44,15 @@ public class CourseImpl implements ICourseService {
 	public Mono<Course> updateCourse(String id, Course course) {
 		return repository.findById(id).flatMap(c -> {
 
-			c.setName(course.getName());
-			c.setProfessorName(course.getProfessorName());
-			c.setDescription(course.getDescription());
+			if (course.getName() != null) {
+				c.setName(course.getName());
+			}
+			if (course.getProfessorName() != null) {
+				c.setProfessorName(course.getProfessorName());
+			}
+			if (course.getDescription() != null) {
+				c.setDescription(course.getDescription());
+			}
 			return repository.save(c);
 
 		});
